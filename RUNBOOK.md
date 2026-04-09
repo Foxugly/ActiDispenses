@@ -14,6 +14,11 @@ Guide court d'exploitation locale et de diagnostic pour ActiDispenses.
 ## Variables critiques
 
 - `DJANGO_SECRET_KEY`
+- `AUTH_LOCAL_LOGIN_ENABLED`
+- `AUTH_AZUREAD_ENABLED`
+- `AUTH_AZUREAD_CLIENT_ID`
+- `AUTH_AZUREAD_CLIENT_SECRET`
+- `AUTH_AZUREAD_TENANT`
 - `ORACLE_CREDENTIAL_KEY`
 - `DJANGO_DEBUG`
 - `DJANGO_ALLOWED_HOSTS`

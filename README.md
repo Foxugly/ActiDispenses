@@ -46,6 +46,39 @@ Variables importantes :
 - `DJANGO_SECURE_REFERRER_POLICY`
 - `DJANGO_SECURE_CROSS_ORIGIN_OPENER_POLICY`
 
+### Azure AD
+
+L'authentification peut rester locale, devenir hybride, ou basculer en `SSO only` via `.env`.
+
+Variables :
+
+- `AUTH_LOCAL_LOGIN_ENABLED`
+- `AUTH_AZUREAD_ENABLED`
+- `AUTH_AZUREAD_AUTO_SIGNUP`
+- `AUTH_AZUREAD_CLIENT_ID`
+- `AUTH_AZUREAD_CLIENT_SECRET`
+- `AUTH_AZUREAD_TENANT`
+- `AUTH_AZUREAD_LOGIN_URL`
+- `AUTH_AZUREAD_GRAPH_URL`
+
+URL de callback a declarer dans Azure Entra ID :
+
+```text
+https://<ton-host>/accounts/microsoft/login/callback/
+```
+
+En local :
+
+```text
+http://127.0.0.1:8000/accounts/microsoft/login/callback/
+```
+
+Combinaisons utiles :
+
+- local uniquement : `AUTH_LOCAL_LOGIN_ENABLED=True` et `AUTH_AZUREAD_ENABLED=False`
+- hybride : `AUTH_LOCAL_LOGIN_ENABLED=True` et `AUTH_AZUREAD_ENABLED=True`
+- Azure AD uniquement : `AUTH_LOCAL_LOGIN_ENABLED=False` et `AUTH_AZUREAD_ENABLED=True`
+
 Si Oracle exige le mode thick, renseigner `ORACLE_CLIENT_LIB_DIR` avec le chemin de l'Instant Client.
 En production, `config.settings.prod` active aussi des options de durcissement pour les cookies, les headers et les proxies HTTPS.
 

@@ -26,6 +26,16 @@ QUERY_ALLOWED_TABLES = env.list(
 QUERY_ALLOWED_SCHEMAS = env.list("QUERY_ALLOWED_SCHEMAS", default=[])
 MONITORING_CACHE_TTL_SECONDS = env.int("MONITORING_CACHE_TTL_SECONDS", default=30)
 DJANGO_LOG_LEVEL = env("DJANGO_LOG_LEVEL", default="INFO")
+LOCAL_LOGIN_ENABLED = env.bool("AUTH_LOCAL_LOGIN_ENABLED", default=True)
+AZUREAD_AUTH_ENABLED = env.bool("AUTH_AZUREAD_ENABLED", default=False)
+AZUREAD_AUTO_SIGNUP = env.bool("AUTH_AZUREAD_AUTO_SIGNUP", default=True)
+AZUREAD_CLIENT_ID = env("AUTH_AZUREAD_CLIENT_ID", default="").strip()
+AZUREAD_CLIENT_SECRET = env("AUTH_AZUREAD_CLIENT_SECRET", default="").strip()
+AZUREAD_TENANT = env("AUTH_AZUREAD_TENANT", default="organizations").strip() or "organizations"
+AZUREAD_LOGIN_URL = env("AUTH_AZUREAD_LOGIN_URL", default="https://login.microsoftonline.com").strip()
+AZUREAD_GRAPH_URL = env("AUTH_AZUREAD_GRAPH_URL", default="https://graph.microsoft.com").strip()
+AZUREAD_AUTH_CONFIGURED = AZUREAD_AUTH_ENABLED and bool(AZUREAD_CLIENT_ID and AZUREAD_CLIENT_SECRET)
+AZUREAD_SSO_ONLY = AZUREAD_AUTH_CONFIGURED and not LOCAL_LOGIN_ENABLED
 TESTING = "test" in sys.argv or "PYTEST_CURRENT_TEST" in os.environ
 
 SITE_ID = 1
@@ -35,12 +45,15 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
+    "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.microsoft",
     "dispenses.apps.DispensesConfig",
     "query.apps.QueryConfig",
     "oracle_accounts.apps.OracleAccountsConfig",
@@ -73,6 +86,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.auth_flags",
                 "oracle_accounts.context_processors.oracle_credentials_nav",
             ],
         },
@@ -81,6 +95,7 @@ TEMPLATES = [
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
@@ -110,8 +125,30 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 ACCOUNT_LOGIN_METHODS = {"username", "email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+ACCOUNT_SIGNUP_ENABLED = LOCAL_LOGIN_ENABLED
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+SOCIALACCOUNT_AUTO_SIGNUP = AZUREAD_AUTO_SIGNUP
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+if AZUREAD_AUTH_CONFIGURED:
+    SOCIALACCOUNT_PROVIDERS = {
+        "microsoft": {
+            "SCOPE": ["openid", "email", "profile"],
+            "APPS": [
+                {
+                    "client_id": AZUREAD_CLIENT_ID,
+                    "secret": AZUREAD_CLIENT_SECRET,
+                    "settings": {
+                        "tenant": AZUREAD_TENANT,
+                        "login_url": AZUREAD_LOGIN_URL,
+                        "graph_url": AZUREAD_GRAPH_URL,
+                    },
+                }
+            ],
+        }
+    }
 
 LOGIN_REDIRECT_URL = "home"
 LOGOUT_REDIRECT_URL = "home"

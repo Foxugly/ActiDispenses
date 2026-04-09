@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load socialaccount %}
 
 {% block title %}{% trans "Se connecter" %}{% endblock %}
 
@@ -10,29 +11,41 @@
     <div class="card shadow-sm border-0">
       <div class="card-body p-4">
         <h1 class="h4 mb-1">{% trans "Se connecter" %}</h1>
-        <p class="text-muted mb-4">{% trans "Accède à ton espace." %}</p>
+        <p class="text-muted mb-4">{% trans "Accede a ton espace." %}</p>
 
-        <form method="post" action="{% url 'account_login' %}" class="vstack gap-3">
-          {% csrf_token %}
-          {{ form|crispy }}
+        {% if auth_azuread_enabled %}
+          <a class="btn btn-outline-primary w-100 mb-3" href="{% url 'microsoft_login' %}">
+            {% trans "Se connecter avec Azure AD" %}
+          </a>
+        {% endif %}
 
-          {% if redirect_field_value %}
-            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
-          {% endif %}
+        {% if auth_azuread_enabled and auth_local_login_enabled %}
+          <div class="text-center text-muted small mb-3">{% trans "ou utilise un compte local" %}</div>
+        {% endif %}
 
-          <button class="btn btn-primary w-100" type="submit">
-            {% trans "Se connecter" %}
-          </button>
+        {% if auth_local_login_enabled %}
+          <form method="post" action="{% url 'account_login' %}" class="vstack gap-3">
+            {% csrf_token %}
+            {{ form|crispy }}
 
-          <div class="d-flex justify-content-between align-items-center">
-            <a class="link-secondary small" href="{% url 'account_reset_password' %}">
-              {% trans "Mot de passe oublié ?" %}
-            </a>
-            <a class="small" href="{% url 'account_signup' %}">
-              {% trans "Créer un compte" %}
-            </a>
-          </div>
-        </form>
+            {% if redirect_field_value %}
+              <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+            {% endif %}
+
+            <button class="btn btn-primary w-100" type="submit">
+              {% trans "Se connecter" %}
+            </button>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <a class="link-secondary small" href="{% url 'account_reset_password' %}">
+                {% trans "Mot de passe oublie ?" %}
+              </a>
+              <a class="small" href="{% url 'account_signup' %}">
+                {% trans "Creer un compte" %}
+              </a>
+            </div>
+          </form>
+        {% endif %}
       </div>
     </div>
   </div>

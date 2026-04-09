@@ -12,16 +12,12 @@ from .services.oracle import (
     build_oracle_insert_sql_literal,
     build_oracle_update_sql_literal,
     fetch_dispense_rows_by_pairs,
-    fetch_dispenses,
     fetch_short_webservice_internal_error_without_next,
     fetch_short_webservice_logs_undo_without_next,
     fetch_webservice_internal_error_without_next,
-    fetch_webservice_logs,
     fetch_webservice_logs_undo_without_next,
     fetch_webservice_ssin_not_integrated_without_next,
     fetch_webservice_unknown_code_without_next,
-    identify_person,
-    resolve_person,
 )
 from .services.page_contexts import (
     MONITORING_EXPORT_FIELDS,
@@ -31,6 +27,7 @@ from .services.page_contexts import (
     resolve_monitoring_period,
 )
 from .services.page_responses import build_csv_download_response, build_text_download_response
+from .use_cases.search_dispenses import DispenseSearchCriteria, run_dispense_search
 
 logger = logging.getLogger(__name__)
 
@@ -137,25 +134,24 @@ def search_dispenses(request: WSGIRequest):
     if not (form.is_valid() and any(form.cleaned_data.values())):
         return render(request, "dispenses/search.html", {"form": form})
 
-    key = form.cleaned_data["search_key"]
-    value = form.cleaned_data["search_value"]
-    if key in ("id_dispense", "no_dispense"):
-        key, value = identify_person(request, key, value)
-
-    person = resolve_person(request, key, value)
-    if not person:
+    search_result = run_dispense_search(
+        request,
+        DispenseSearchCriteria(
+            search_key=form.cleaned_data["search_key"],
+            search_value=form.cleaned_data["search_value"],
+        ),
+    )
+    if not search_result:
         return render(request, "dispenses/search.html", {"form": form, "not_found": True})
 
-    dispenses = fetch_dispenses(request, person.id_demandeur)
-    ws_logs = fetch_webservice_logs(request, person.id_demandeur)
     return render(
         request,
         "dispenses/result.html",
         build_search_results_context(
             form=form,
-            person=person,
-            dispenses=dispenses,
-            ws_logs=ws_logs,
+            person=search_result.person,
+            dispenses=search_result.dispenses,
+            ws_logs=search_result.ws_logs,
         ),
     )
 

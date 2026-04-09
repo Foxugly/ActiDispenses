@@ -82,6 +82,34 @@ class StaticPageTests(TestCase):
         self.assertContains(response, "Metriques applicatives")
         self.assertContains(response, "12.5 ms")
 
+    def test_login_page_renders_local_form_by_default(self):
+        response = self.client.get(reverse("account_login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "account/login.html")
+        self.assertContains(response, "Se connecter")
+        self.assertContains(response, "Mot de passe")
+
+    @override_settings(
+        AZUREAD_AUTH_ENABLED=True,
+        AZUREAD_AUTH_CONFIGURED=True,
+        LOCAL_LOGIN_ENABLED=True,
+        AZUREAD_SSO_ONLY=False,
+    )
+    def test_login_page_can_show_azuread_button_in_hybrid_mode(self):
+        response = self.client.get(reverse("account_login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Se connecter avec Azure AD")
+        self.assertContains(response, "Mot de passe")
+
+    @override_settings(AZUREAD_AUTH_ENABLED=True, LOCAL_LOGIN_ENABLED=False, AZUREAD_SSO_ONLY=True)
+    def test_login_page_redirects_to_microsoft_in_sso_only_mode(self):
+        response = self.client.get(reverse("account_login"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("microsoft_login"))
+
 
 class ErrorPageTests(TestCase):
     def setUp(self):

@@ -24,6 +24,8 @@ from dispenses.services.oracle import (
     expect_one,
     fill_missing_days,
 )
+from dispenses.services.oracle_people import PersonInfo
+from dispenses.use_cases.search_dispenses import DispenseSearchCriteria, DispenseSearchResult, run_dispense_search
 from dispenses.services.oracle_gateway import _safe_params, check_oracle_connection, init_oracle_client
 from tests.factories import make_oracle_credential, make_user
 
@@ -306,6 +308,43 @@ class OracleServiceHelperTests(TestCase):
         self.assertEqual(connect_mock.call_count, 2)
 
 
+class DispenseSearchUseCaseTests(TestCase):
+    @patch("dispenses.use_cases.search_dispenses.fetch_webservice_logs", return_value=[{"decisionidentification": "D1"}])
+    @patch("dispenses.use_cases.search_dispenses.fetch_dispenses", return_value=[{"id_dispense": "1"}])
+    @patch("dispenses.use_cases.search_dispenses.resolve_person")
+    @patch("dispenses.use_cases.search_dispenses.identify_person", return_value=("id_demandeur", "10"))
+    def test_resolves_id_dispense_then_loads_person_data(
+        self,
+        identify_person_mock,
+        resolve_person_mock,
+        fetch_dispenses_mock,
+        fetch_ws_logs_mock,
+    ):
+        request = SimpleNamespace()
+        resolve_person_mock.return_value = SimpleNamespace(id_demandeur="10", nom="Doe", prenom="Jane")
+
+        result = run_dispense_search(request, DispenseSearchCriteria(search_key="id_dispense", search_value="123"))
+
+        self.assertIsNotNone(result)
+        result = cast(DispenseSearchResult, result)
+        self.assertEqual(result.person.id_demandeur, "10")
+        self.assertEqual(result.dispenses, [{"id_dispense": "1"}])
+        self.assertEqual(result.ws_logs, [{"decisionidentification": "D1"}])
+        identify_person_mock.assert_called_once_with(request, "id_dispense", "123")
+        resolve_person_mock.assert_called_once_with(request, "id_demandeur", "10")
+        fetch_dispenses_mock.assert_called_once_with(request, "10")
+        fetch_ws_logs_mock.assert_called_once_with(request, "10")
+
+    @patch("dispenses.use_cases.search_dispenses.resolve_person", return_value=None)
+    def test_returns_none_when_person_is_missing(self, resolve_person_mock):
+        request = SimpleNamespace()
+
+        result = run_dispense_search(request, DispenseSearchCriteria(search_key="niss", search_value="12345678901"))
+
+        self.assertIsNone(result)
+        resolve_person_mock.assert_called_once_with(request, "niss", "12345678901")
+
+
 class DispensesViewTests(TestCase):
     def setUp(self):
         cache.clear()
@@ -377,12 +416,14 @@ class DispensesViewTests(TestCase):
         self.assertIn("attachment;", response["Content-Disposition"])
         self.assertIn("id_dispense", response.content.decode())
 
-    @patch("dispenses.views.fetch_webservice_logs", return_value=[{"decisionidentification": "D1"}])
-    @patch("dispenses.views.fetch_dispenses", return_value=[{"id_dispense": "1"}])
-    @patch("dispenses.views.resolve_person")
-    def test_search_dispenses_renders_results(self, resolve_person_mock, _fetch_dispenses, _fetch_ws_logs):
+    @patch("dispenses.views.run_dispense_search")
+    def test_search_dispenses_renders_results(self, run_search_mock):
         self.client.force_login(self.user)
-        resolve_person_mock.return_value = SimpleNamespace(id_demandeur="10", nom="Doe", prenom="Jane")
+        run_search_mock.return_value = DispenseSearchResult(
+            person=PersonInfo(id_demandeur="10", nom="Doe", prenom="Jane", niss="12345678901", no_ibis="H78047076"),
+            dispenses=[{"id_dispense": "1"}],
+            ws_logs=[{"decisionidentification": "D1"}],
+        )
 
         response = self.client.get(self.search_url, {"id_demandeur": "10"})
 
@@ -391,9 +432,10 @@ class DispensesViewTests(TestCase):
         self.assertEqual(response.context["person"].id_demandeur, "10")
         self.assertContains(response, "Historique d'envoi ONEM")
         self.assertNotContains(response, '{% include "dispenses/includes/data_table_card.html" with')
+        run_search_mock.assert_called_once()
 
-    @patch("dispenses.views.resolve_person", return_value=None)
-    def test_search_dispenses_shows_not_found(self, _resolve_person):
+    @patch("dispenses.views.run_dispense_search", return_value=None)
+    def test_search_dispenses_shows_not_found(self, _run_search):
         self.client.force_login(self.user)
 
         response = self.client.get(self.search_url, {"niss": "12345678901"})

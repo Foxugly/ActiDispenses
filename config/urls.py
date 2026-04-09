@@ -4,12 +4,13 @@ from typing import TypedDict
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
+from allauth.account.views import LoginView
 from django.core.cache import cache
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import connection
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
-from django.urls import include, path
+from django.shortcuts import redirect, render
+from django.urls import include, path, reverse
 from django.utils import timezone
 
 from config.metrics import get_app_metrics_snapshot, increment_metric, set_metric
@@ -31,6 +32,12 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def about(request: HttpRequest) -> HttpResponse:
     return render(request, "about.html", {"page_title": "A propos"})
+
+
+def account_login(request: HttpRequest) -> HttpResponse:
+    if settings.AZUREAD_SSO_ONLY:
+        return redirect(reverse("microsoft_login"))
+    return LoginView.as_view()(request)
 
 
 @login_required
@@ -154,6 +161,7 @@ def error_503(request: HttpRequest) -> HttpResponse:
 urlpatterns = [
     path("", home, name="home"),
     path("about", about, name="about"),
+    path("accounts/login/", account_login, name="account_login"),
     path("accounts/settings/", settings_home, name="account_settings"),
     path("ops/", ops_dashboard, name="ops_dashboard"),
     path("healthz/", healthz, name="healthz"),
