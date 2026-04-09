@@ -1,10 +1,10 @@
 from time import perf_counter
 from typing import TypedDict
 
+from allauth.account.views import LoginView
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.decorators import login_required
-from allauth.account.views import LoginView
 from django.core.cache import cache
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import connection

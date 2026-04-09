@@ -24,9 +24,9 @@ from dispenses.services.oracle import (
     expect_one,
     fill_missing_days,
 )
+from dispenses.services.oracle_gateway import _safe_params, check_oracle_connection, init_oracle_client
 from dispenses.services.oracle_people import PersonInfo
 from dispenses.use_cases.search_dispenses import DispenseSearchCriteria, DispenseSearchResult, run_dispense_search
-from dispenses.services.oracle_gateway import _safe_params, check_oracle_connection, init_oracle_client
 from tests.factories import make_oracle_credential, make_user
 
 
@@ -309,7 +309,10 @@ class OracleServiceHelperTests(TestCase):
 
 
 class DispenseSearchUseCaseTests(TestCase):
-    @patch("dispenses.use_cases.search_dispenses.fetch_webservice_logs", return_value=[{"decisionidentification": "D1"}])
+    @patch(
+        "dispenses.use_cases.search_dispenses.fetch_webservice_logs",
+        return_value=[{"decisionidentification": "D1"}],
+    )
     @patch("dispenses.use_cases.search_dispenses.fetch_dispenses", return_value=[{"id_dispense": "1"}])
     @patch("dispenses.use_cases.search_dispenses.resolve_person")
     @patch("dispenses.use_cases.search_dispenses.identify_person", return_value=("id_demandeur", "10"))
