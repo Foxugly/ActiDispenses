@@ -6,6 +6,7 @@ Guide court d'exploitation locale et de diagnostic pour ActiDispenses.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .venv\Scripts\python.exe manage.py migrate
 .venv\Scripts\python.exe manage.py runserver
 ```

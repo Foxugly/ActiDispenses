@@ -5,9 +5,3 @@ crispy-bootstrap5==2026.3
 cryptography==46.0.7
 oracledb==3.4.2
 django-environ==0.13.0
-pytest>=9.0.3
-pytest-django>=4.12,<5
-coverage[toml]>=7.13,<8
-ruff>=0.15,<0.16
-pre-commit>=4.5,<5
-mypy>=1.20,<2

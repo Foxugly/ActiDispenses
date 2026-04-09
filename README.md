@@ -16,6 +16,12 @@ python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
+Pour l'outillage de qualite, les tests et la CI locale :
+
+```powershell
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
+
 ## Configuration
 
 Creer un fichier `.env` a la racine en partant de `.env.example`.
@@ -107,6 +113,8 @@ Il execute :
 - `python -m coverage run -m pytest -vv`
 - `python -m coverage report --fail-under=85`
 - `python -m coverage xml`
+
+La CI installe `requirements-dev.txt`, tandis que `requirements.txt` reste limite aux dependances applicatives.
 
 En local, tu peux aussi activer les hooks :
 
