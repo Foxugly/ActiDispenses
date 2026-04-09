@@ -1,0 +1,55 @@
+{% load dict_extras %}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white">
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div>
+                <h2 class="h5 mb-1">{{ title }}</h2>
+                <div class="small text-muted">{{ subtitle }}</div>
+            </div>
+            <button id="{{ toggle_button_id }}" class="btn btn-outline-secondary btn-sm" type="button">
+                <i class="fa-solid fa-table-columns me-2"></i>Colonnes
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            {% if rows %}
+                <table id="{{ table_id }}" class="table table-striped table-hover table-sm align-middle text-center w-100">
+                    <thead>
+                    <tr>
+                        {% for c in columns %}
+                            <th>{{ c }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for c in columns %}
+                            <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Filtrer..."></th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for c in columns %}
+                                <td>{{ row|get_item:c|format_value }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="alert alert-info mb-0">{{ empty_message }}</div>
+            {% endif %}
+        </div>
+
+        <div id="{{ panel_id }}" class="border rounded p-2 mt-3 d-none bg-body">
+            <div class="small text-muted mb-2">Afficher ou masquer les colonnes</div>
+            <div class="row g-2" id="{{ checklist_id }}"></div>
+            <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-sm btn-outline-secondary" type="button" id="{{ reset_button_id }}">Reset</button>
+                <button class="btn btn-sm btn-primary" type="button" id="{{ close_button_id }}">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>

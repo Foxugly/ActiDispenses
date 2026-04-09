@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% trans "Se connecter" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">{% trans "Se connecter" %}</h1>
+        <p class="text-muted mb-4">{% trans "Accède à ton espace." %}</p>
+
+        <form method="post" action="{% url 'account_login' %}" class="vstack gap-3">
+          {% csrf_token %}
+          {{ form|crispy }}
+
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+          {% endif %}
+
+          <button class="btn btn-primary w-100" type="submit">
+            {% trans "Se connecter" %}
+          </button>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <a class="link-secondary small" href="{% url 'account_reset_password' %}">
+              {% trans "Mot de passe oublié ?" %}
+            </a>
+            <a class="small" href="{% url 'account_signup' %}">
+              {% trans "Créer un compte" %}
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

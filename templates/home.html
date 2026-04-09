@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+    <div class="row g-4 align-items-stretch">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-lg-8">
+                            <div class="text-uppercase small fw-semibold text-primary mb-2">Tableau de bord</div>
+                            <h1 class="display-6 fw-semibold mb-3">Pilote les dispenses, surveille les flux Oracle et retrouve vite les bonnes informations.</h1>
+                            <p class="lead text-muted mb-4">
+                                ActiDispenses rassemble les outils de recherche, de monitoring, de diagnostic et d'audit
+                                pour travailler plus vite sur les traitements de dispenses.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if request.user.is_authenticated %}
+                                    <a class="btn btn-primary" href="{% url 'dispenses_monitoring' %}">
+                                        <i class="fa-solid fa-chart-column me-2"></i>Monitoring
+                                    </a>
+                                    <a class="btn btn-outline-secondary" href="{% url 'dispenses_search' %}">
+                                        <i class="fa-solid fa-magnifying-glass me-2"></i>Recherche
+                                    </a>
+                                    <a class="btn btn-outline-secondary" href="{% url 'healthz' %}">
+                                        <i class="fa-solid fa-heart-pulse me-2"></i>Sante
+                                    </a>
+                                {% else %}
+                                    <a class="btn btn-primary" href="{% url 'account_login' %}">
+                                        <i class="fa-solid fa-right-to-bracket me-2"></i>Se connecter
+                                    </a>
+                                    <a class="btn btn-outline-secondary" href="{% url 'about' %}">
+                                        <i class="fa-solid fa-circle-info me-2"></i>En savoir plus
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="rounded-4 bg-body-tertiary border p-4 h-100">
+                                <div class="small text-muted mb-2">Apercu rapide</div>
+                                <div class="d-grid gap-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Recherche de dispenses</span>
+                                        <span class="badge bg-primary-subtle text-primary">Cle</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Monitoring mensuel</span>
+                                        <span class="badge bg-success-subtle text-success">Actif</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Audit SQL</span>
+                                        <span class="badge bg-warning-subtle text-warning">Staff</span>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>Credentials Oracle</span>
+                                        <span class="badge bg-secondary-subtle text-secondary">Securise</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Parcours principaux</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a class="text-decoration-none" href="{% url 'dispenses_search' %}">
+                                <div class="border rounded-4 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="rounded-3 bg-primary-subtle text-primary px-3 py-2">
+                                            <i class="fa-solid fa-id-card"></i>
+                                        </div>
+                                        <div class="fw-semibold text-dark">Retrouver une dispense</div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Recherche par NISS, ID demandeur, NO_IBIS, ID dispense ou numero de dispense.
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a class="text-decoration-none" href="{% url 'dispenses_monitoring' %}">
+                                <div class="border rounded-4 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="rounded-3 bg-success-subtle text-success px-3 py-2">
+                                            <i class="fa-solid fa-chart-line"></i>
+                                        </div>
+                                        <div class="fw-semibold text-dark">Surveiller les anomalies</div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Visualise les volumes, les statuts de retour et les enregistrements anormaux du mois.
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a class="text-decoration-none" href="{% url 'query' %}">
+                                <div class="border rounded-4 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="rounded-3 bg-warning-subtle text-warning px-3 py-2">
+                                            <i class="fa-solid fa-database"></i>
+                                        </div>
+                                        <div class="fw-semibold text-dark">Interroger Oracle</div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Lance des requetes SQL en lecture seule avec limite de lignes, audit et export.
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a class="text-decoration-none" href="{% url 'oracle_accounts:list' %}">
+                                <div class="border rounded-4 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="rounded-3 bg-secondary-subtle text-secondary px-3 py-2">
+                                            <i class="fa-solid fa-key"></i>
+                                        </div>
+                                        <div class="fw-semibold text-dark">Gerer les credentials</div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Selectionne le credential Oracle courant et administre tes acces de connexion.
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Reperes</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div class="border rounded-4 p-3">
+                            <div class="small text-muted mb-1">Sante</div>
+                            <div class="fw-semibold">Controle local et test Oracle a la demande</div>
+                        </div>
+                        <div class="border rounded-4 p-3">
+                            <div class="small text-muted mb-1">Audit SQL</div>
+                            <div class="fw-semibold">Historique, detail et export CSV des requetes staff</div>
+                        </div>
+                        <div class="border rounded-4 p-3">
+                            <div class="small text-muted mb-1">Diagnostic</div>
+                            <div class="fw-semibold">Commande `diagnose_app` pour verifier l'environnement</div>
+                        </div>
+                        <div class="border rounded-4 p-3">
+                            <div class="small text-muted mb-1">Qualite</div>
+                            <div class="fw-semibold">Tests, coverage, ruff, mypy et pre-commit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Recherche</div>
+                                <div class="fw-semibold">Acces rapide aux personnes, dispenses et retours webservice</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Monitoring</div>
+                                <div class="fw-semibold">Lecture operationnelle des volumes et des anomalies mensuelles</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Securite</div>
+                                <div class="fw-semibold">Secrets externalises, acces staff et audit des actions sensibles</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Maintenance</div>
+                                <div class="fw-semibold">Migrations, commandes utilitaires et structure de services plus claire</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

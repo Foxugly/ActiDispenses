@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Sante applicative{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Sante applicative</h1>
+                    <p class="text-muted mb-0">Vue rapide de l'etat general de l'application.</p>
+                </div>
+                <span class="badge {% if database_ok %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                    {{ status }}
+                </span>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-heart-pulse me-2"></i>
+                        Etat des composants
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="fw-semibold">Application Django</span>
+                                    <span class="badge bg-success">OK</span>
+                                </div>
+                                <p class="text-muted mb-0 small">
+                                    Le serveur web repond correctement et la page a ete generee.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="fw-semibold">Base locale Django</span>
+                                    <span class="badge {% if database_ok %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ database_status }}
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-0 small">
+                                    Verification via une requete SQL simple sur la base de l'application.
+                                    Temps de reponse : {{ database_duration_ms }} ms.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-sliders me-2"></i>
+                        Configuration active
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Environnement</div>
+                                <div class="fw-semibold">{{ environment_name }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Mode Oracle</div>
+                                <div class="fw-semibold">{{ oracle_mode }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Timeout Oracle</div>
+                                <div class="fw-semibold">{{ oracle_timeout_ms }} ms</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Version applicative</div>
+                                <div class="fw-semibold">{{ app_version }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Date de build</div>
+                                <div class="fw-semibold">{{ build_date }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-database me-2"></i>
+                        Verification Oracle
+                    </h5>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'healthz' %}?oracle=1">Tester Oracle</a>
+                </div>
+                <div class="card-body">
+                    {% if oracle_requested %}
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="fw-semibold">Etat Oracle</span>
+                            {% if oracle_ok %}
+                                <span class="badge bg-success">OK</span>
+                            {% elif oracle_ok is False %}
+                                <span class="badge bg-danger">Erreur</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Non teste</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-muted mb-0 small">
+                            {{ oracle_message }}
+                            {% if oracle_duration_ms %}
+                                Temps de reponse : {{ oracle_duration_ms }} ms.
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="text-muted mb-0 small">
+                            Lance un test Oracle a la demande. Cette verification utilise le credential Oracle courant de l'utilisateur connecte.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>
+                        Derniers succes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Dernier succes Oracle memorise</div>
+                                {% if last_oracle_success %}
+                                    <div class="fw-semibold">{{ last_oracle_success.username }}</div>
+                                    <div class="small text-muted">{{ last_oracle_success.timestamp }}</div>
+                                {% else %}
+                                    <div class="fw-semibold">Aucun</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Dernier audit SQL reussi</div>
+                                {% if latest_successful_audit %}
+                                    <div class="fw-semibold">{{ latest_successful_audit.user.username|default:"-" }}</div>
+                                    <div class="small text-muted">{{ latest_successful_audit.created_at|date:"Y-m-d H:i:s" }}</div>
+                                {% else %}
+                                    <div class="fw-semibold">Aucun</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="fw-semibold">Lecture</h6>
+                    <p class="text-muted mb-0">
+                        Cette page verifie la disponibilite de Django et de la base locale. Le test Oracle est optionnel et depend du credential actif.
+                    </p>
+                    <hr>
+                    <div class="row g-3 small">
+                        <div class="col-md-4">
+                            <div class="text-muted">Appels healthz</div>
+                            <div class="fw-semibold">{{ metrics.healthz_requests }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Checks Oracle demandes</div>
+                            <div class="fw-semibold">{{ metrics.oracle_checks }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Echecs Oracle</div>
+                            <div class="fw-semibold">{{ metrics.oracle_check_failures }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

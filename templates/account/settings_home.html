@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Parametres{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-3">
+        {% include "account/includes/settings_nav.html" %}
+    </div>
+
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 overflow-hidden mb-4">
+            <div class="card-body p-4 p-lg-5">
+                <div class="text-uppercase small fw-semibold text-primary mb-2">Parametres</div>
+                <h1 class="display-6 fw-semibold mb-3">Centre de configuration</h1>
+                <p class="lead text-muted mb-0">
+                    Regroupe les reglages du compte, les acces Oracle et les outils techniques utiles
+                    pour travailler dans l'application.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <a class="text-decoration-none" href="{% url 'account_email' %}">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-3 bg-primary-subtle text-primary px-3 py-2">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="fw-semibold text-dark">Emails</div>
+                            </div>
+                            <div class="text-muted small">Ajoute, verifie ou redefinis ton adresse principale.</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a class="text-decoration-none" href="{% url 'account_change_password' %}">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-3 bg-warning-subtle text-warning px-3 py-2">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <div class="fw-semibold text-dark">Mot de passe</div>
+                            </div>
+                            <div class="text-muted small">Met a jour ton mot de passe et securise l'acces au compte.</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a class="text-decoration-none" href="{% url 'oracle_accounts:list' %}">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-3 bg-success-subtle text-success px-3 py-2">
+                                    <i class="fa-solid fa-database"></i>
+                                </div>
+                                <div class="fw-semibold text-dark">Identifiants Oracle</div>
+                            </div>
+                            <div class="text-muted small">Gere tes credentials, leur etat et le credential courant.</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a class="text-decoration-none" href="{% url 'healthz' %}">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="rounded-3 bg-secondary-subtle text-secondary px-3 py-2">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </div>
+                                <div class="fw-semibold text-dark">Sante applicative</div>
+                            </div>
+                            <div class="text-muted small">Verifie l'etat local, Oracle et les informations techniques utiles.</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

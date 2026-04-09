@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load dict_extras %}
+{% load static %}
+
+{% block title %}{{ issue_title }}{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+                        <div class="me-auto">
+                            <div class="text-uppercase small fw-semibold text-primary mb-2">Dispenses</div>
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge text-bg-dark">{{ issue_badge }}</span>
+                                <h1 class="h2 mb-0">{{ issue_title }}</h1>
+                            </div>
+                            <p class="lead text-muted mb-0">{{ issue_description }}</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a class="btn btn-outline-secondary" href="{% url 'dispenses_monitoring' %}">
+                                <i class="fa-solid fa-chart-column me-2"></i>Monitoring
+                            </a>
+                            {% if sql_download_url %}
+                                <button class="btn btn-primary" id="sqlBtn" type="button" data-download-url="{% url sql_download_url %}">
+                                    <span id="btnText"><i class="fa-solid fa-download me-2"></i>{{ sql_button_label }}</span>
+                                    <span id="btnSpinner" class="d-none">
+                                        <span class="spinner-border spinner-border-sm me-2"></span>Generation...
+                                    </span>
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-secondary" type="button" disabled>
+                                    <i class="fa-solid fa-wrench me-2"></i>Aucun script disponible
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="h5 mb-1">Resultats</h2>
+                        <div class="small text-muted">{{ ws_logs|length }} ligne{{ ws_logs|length|pluralize }} a analyser</div>
+                    </div>
+                    <button id="btnColsWs" class="btn btn-outline-secondary btn-sm" type="button">
+                        <i class="fa-solid fa-table-columns me-2"></i>Colonnes
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if ws_logs %}
+                        <div class="table-responsive">
+                            <table id="tblWs" class="table table-striped table-hover table-sm align-middle text-center w-100">
+                                <thead>
+                                <tr>
+                                    {% for c in ws_cols %}
+                                        <th>{{ c }}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for row in ws_logs %}
+                                    <tr>
+                                        {% for c in ws_cols %}
+                                            <td>{{ row|get_item:c|format_value }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="rounded-4 border border-success-subtle bg-success-subtle p-4">
+                            <div class="fw-semibold mb-2">Aucune ligne bloquante</div>
+                            <div class="text-muted small">Aucune anomalie n'a ete detectee pour cette categorie.</div>
+                        </div>
+                    {% endif %}
+
+                    <div id="panelColsWs" class="border rounded p-2 mt-3 d-none bg-body">
+                        <div class="small text-muted mb-2">Afficher ou masquer les colonnes</div>
+                        <div class="row g-2" id="colsChecklistWs"></div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" id="colsResetWs">Reset</button>
+                            <button class="btn btn-sm btn-primary" type="button" id="colsCloseWs">Fermer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include "includes/datatables_assets.html" %}
+
+    <script>
+        window.wsIssueTableConfig = {{ ws_table_config_json|safe }};
+    </script>
+    <script src="{% static 'app/js/ws_issue.js' %}"></script>
+{% endblock %}

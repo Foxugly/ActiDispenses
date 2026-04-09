@@ -1,0 +1,68 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Prepare env
+        shell: pwsh
+        run: |
+          @"
+          DJANGO_SECRET_KEY=test-secret-key
+          ORACLE_CREDENTIAL_KEY=jaPXzYae-MtAw_pcY1Prizl_vPcF9_Q5QPXpNwERE9g=
+          DJANGO_DEBUG=False
+          DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+          ORACLE_CLIENT_LIB_DIR=
+          ORACLE_CALL_TIMEOUT_MS=30000
+          QUERY_PREVIEW_MAX_ROWS=500
+          QUERY_ALLOWED_TABLES=DUAL,IB_DISPENSES,IB_DEMANDEURS,IB_UNEMPL_DECISION_DISPENSES
+          QUERY_ALLOWED_SCHEMAS=
+          "@ | Set-Content -Path .env
+
+      - name: Run Django tests
+        run: python manage.py test
+
+      - name: Run pre-commit
+        run: python -m pre_commit run --all-files
+
+      - name: Run mypy
+        run: python -m mypy .
+
+      - name: Run pytest with coverage
+        run: python -m coverage run -m pytest -vv
+
+      - name: Coverage report
+        run: python -m coverage report --fail-under=85
+
+      - name: Coverage XML
+        run: python -m coverage xml
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: coverage.xml

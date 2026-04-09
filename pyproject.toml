@@ -1,0 +1,54 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [
+    ".git",
+    ".idea",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "*/migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_configs = true
+check_untyped_defs = true
+warn_return_any = true
+exclude = [
+    "^\\.venv/",
+    "^\\.idea/",
+    "^migrations/",
+]
+
+[tool.coverage.run]
+branch = true
+source = [
+    "config",
+    "dispenses",
+    "oracle_accounts",
+    "query",
+]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = false
+omit = [
+    "config/asgi.py",
+    "config/wsgi.py",
+    "config/settings/__init__.py",
+    "config/settings/dev.py",
+    "config/settings/prod.py",
+    "config/settings/test.py",
+    "*/migrations/*",
+]

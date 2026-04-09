@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}A propos{% endblock %}
+
+{% block content %}
+    <div class="row g-4 align-items-stretch">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-lg-8">
+                            <div class="text-uppercase small fw-semibold text-primary mb-2">ActiDispenses</div>
+                            <h1 class="display-6 fw-semibold mb-3">Une interface de travail pour piloter les dispenses et diagnostiquer Oracle.</h1>
+                            <p class="lead text-muted mb-4">
+                                L'application centralise la consultation des dispenses, le monitoring des flux,
+                                les outils de diagnostic SQL et la gestion des credentials Oracle dans une interface unique.
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a class="btn btn-primary" href="{% url 'dispenses_monitoring' %}">
+                                    <i class="fa-solid fa-chart-column me-2"></i>Ouvrir le monitoring
+                                </a>
+                                <a class="btn btn-outline-secondary" href="{% url 'healthz' %}">
+                                    <i class="fa-solid fa-heart-pulse me-2"></i>Verifier la sante
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="rounded-4 bg-body-tertiary border p-4 h-100">
+                                <div class="small text-muted mb-2">Ce que fait l'application</div>
+                                <ul class="list-unstyled mb-0 d-grid gap-3">
+                                    <li><i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>Recherche de dispenses et de personnes</li>
+                                    <li><i class="fa-solid fa-chart-line me-2 text-primary"></i>Suivi mensuel des statuts et anomalies</li>
+                                    <li><i class="fa-solid fa-database me-2 text-primary"></i>Interrogation SQL Oracle en lecture seule</li>
+                                    <li><i class="fa-solid fa-key me-2 text-primary"></i>Gestion de plusieurs credentials Oracle</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Modules</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div>
+                            <div class="fw-semibold">Dispenses</div>
+                            <div class="text-muted small">Recherche, monitoring, diagnostics et generation de scripts SQL.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Requetes SQL</div>
+                            <div class="text-muted small">Execution de requetes SQL staff-only avec audit et limitation des resultats.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Comptes Oracle</div>
+                            <div class="text-muted small">Gestion securisee des acces Oracle par utilisateur.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Sante applicative</div>
+                            <div class="text-muted small">Verifications applicatives locales et test Oracle a la demande.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Principes</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div>
+                            <div class="fw-semibold">Lecture seule la ou c'est sensible</div>
+                            <div class="text-muted small">La page SQL est limitee a des requetes `SELECT` et `WITH`, reservee aux comptes `staff`.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Secrets hors du code</div>
+                            <div class="text-muted small">Les cles applicatives et Oracle sont chargees depuis l'environnement.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Auditabilite</div>
+                            <div class="text-muted small">Les executions SQL sensibles sont historisees et exportables.</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">Robustesse locale</div>
+                            <div class="text-muted small">Tests, checks, commandes de diagnostic et monitoring permettent un usage plus fiable.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Raccourcis utiles</h2>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a class="list-group-item list-group-item-action px-0" href="{% url 'dispenses_search' %}">
+                            <i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>Recherche des dispenses
+                        </a>
+                        <a class="list-group-item list-group-item-action px-0" href="{% url 'query' %}">
+                            <i class="fa-solid fa-database me-2 text-primary"></i>Console SQL
+                        </a>
+                        <a class="list-group-item list-group-item-action px-0" href="{% url 'query_audit' %}">
+                            <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Audit SQL
+                        </a>
+                        <a class="list-group-item list-group-item-action px-0" href="{% url 'oracle_accounts:list' %}">
+                            <i class="fa-solid fa-key me-2 text-primary"></i>Credentials Oracle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Securite</div>
+                                <div class="fw-semibold">Acces staff, audit et secrets externalises</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Observabilite</div>
+                                <div class="fw-semibold">Page sante, logs, monitoring et commandes de diagnostic</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Qualite</div>
+                                <div class="fw-semibold">Tests Django, pytest, coverage, ruff, mypy et pre-commit</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="small text-muted mb-1">Maintenance</div>
+                                <div class="fw-semibold">Purges d'audit, migrations suivies et structure de services plus claire</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,225 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-semibold" href="{% url 'home' %}">ActiDispenses</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+                       href="{% url 'home' %}">
+                        Accueil
+                    </a>
+                </li>
+
+                {% if request.user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'dispenses_monitoring dispenses_search dispenses_internal_error dispenses_undo dispenses_ssin_not_integrated dispenses_unknown_code' %}active{% endif %}"
+                           href="#"
+                           id="dispensesDropdown"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="fa-regular fa-address-card"></i> Dispenses
+                        </a>
+
+                        <ul class="dropdown-menu shadow-sm border-0" aria-labelledby="dispensesDropdown">
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_monitoring' %}active{% endif %}"
+                                   href="{% url 'dispenses_monitoring' %}">
+                                    <i class="fa-solid fa-chart-column"></i> Monitoring
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_search' %}active{% endif %}"
+                                   href="{% url 'dispenses_search' %}">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Recherche
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_internal_error' %}active{% endif %}"
+                                   href="{% url 'dispenses_internal_error' %}">
+                                    <i class="fa-solid fa-file-circle-xmark"></i> Erreur interne
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_undo' %}active{% endif %}"
+                                   href="{% url 'dispenses_undo' %}">
+                                    <i class="fa-solid fa-file-circle-exclamation"></i> Annulation
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_ssin_not_integrated' %}active{% endif %}"
+                                   href="{% url 'dispenses_ssin_not_integrated' %}">
+                                    <i class="fa-solid fa-user-xmark"></i> NISS non integre
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'dispenses_unknown_code' %}active{% endif %}"
+                                   href="{% url 'dispenses_unknown_code' %}">
+                                    <i class="fa-solid fa-file-circle-question"></i> Code inconnu
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'query query_audit query_audit_detail healthz about account_settings ops_dashboard' %}active{% endif %}"
+                       href="#"
+                       id="toolsDropdown"
+                       role="button"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Outils
+                    </a>
+                    <ul class="dropdown-menu shadow-sm border-0" aria-labelledby="toolsDropdown">
+                        {% if request.user.is_authenticated and request.user.is_staff or perms.query.run_sql_console %}
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'query' %}active{% endif %}"
+                                   href="{% url 'query' %}">
+                                    <i class="fa-solid fa-database"></i> Requete SQL
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if request.user.is_authenticated and request.user.is_staff or perms.query.view_queryaudit %}
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name in 'query_audit query_audit_detail' %}active{% endif %}"
+                                   href="{% url 'query_audit' %}">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Audit SQL
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if request.user.is_authenticated and request.user.is_staff or perms.query.view_ops_dashboard %}
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'ops_dashboard' %}active{% endif %}"
+                                   href="{% url 'ops_dashboard' %}">
+                                    <i class="fa-solid fa-gauge-high"></i> Tableau de bord technique
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li>
+                            <a class="dropdown-item {% if request.resolver_match.url_name == 'healthz' %}active{% endif %}"
+                               href="{% url 'healthz' %}">
+                                <i class="fa-solid fa-heart-pulse"></i> Sante
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+                               href="{% url 'about' %}">
+                                <i class="fa-solid fa-circle-info"></i> A propos
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                {% if request.user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fa-solid fa-database"></i>
+                            {% if ORACLE_CURRENT_CRED %}
+                                {{ ORACLE_CURRENT_CRED.label|default:"Oracle" }}
+                            {% else %}
+                                Oracle
+                            {% endif %}
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 360px;">
+                            {% if ORACLE_CURRENT_CRED %}
+                                <li class="px-3 py-2">
+                                    <div class="small text-muted">Identifiant courant</div>
+                                    <div class="fw-semibold">{{ ORACLE_CURRENT_CRED.host }}:{{ ORACLE_CURRENT_CRED.port }}</div>
+                                    <div class="small text-muted">{{ ORACLE_CURRENT_CRED.service_name }} - {{ ORACLE_CURRENT_CRED.username }}</div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+
+                            {% for c in ORACLE_CREDS %}
+                                <li class="px-2">
+                                    <form method="post" action="{% url 'oracle_accounts:switch' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="cred_id" value="{{ c.id }}">
+                                        <button type="submit"
+                                                class="dropdown-item d-flex justify-content-between align-items-center {% if ORACLE_CURRENT_CRED and c.id == ORACLE_CURRENT_CRED.id %}bg-success active{% endif %}"
+                                                {% if not c.enabled %}disabled{% endif %}>
+                                            <span class="me-2">
+                                                <span class="fw-semibold">{{ c.label|default:"Oracle" }}</span><br>
+                                                <span class="small">{{ c.host }}:{{ c.port }}/{{ c.service_name }} - {{ c.username }}</span>
+                                            </span>
+
+                                            {% if ORACLE_CURRENT_CRED and c.id == ORACLE_CURRENT_CRED.id %}
+                                                <span class="badge bg-light text-success">courant</span>
+                                            {% elif not c.enabled %}
+                                                <span class="badge bg-secondary">off</span>
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                </li>
+                            {% empty %}
+                                <li class="px-3 py-2 text-muted small">Aucun identifiant configure.</li>
+                            {% endfor %}
+
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'oracle_accounts:list' %}">
+                                    <i class="fa-solid fa-gear"></i> Gerer les identifiants
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'oracle_accounts:create' %}">
+                                    <i class="fa-solid fa-plus"></i> Ajouter un identifiant
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fa-regular fa-user"></i> {{ request.user.get_username }}
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'account_settings' %}">
+                                    <i class="fa-solid fa-user-gear"></i> Parametres
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'oracle_accounts:list' %}">
+                                    <i class="fa-solid fa-gear"></i> Gerer les identifiants
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'account_change_password' %}">
+                                    <i class="fa-solid fa-key"></i> Changer le mot de passe
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'account_logout' %}">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Se deconnecter
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a class="btn btn-primary" href="{% url 'account_login' %}">
+                        <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

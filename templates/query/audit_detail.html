@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Detail audit SQL{% endblock %}
+
+{% block content %}
+    <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h4 mb-1">Detail audit SQL</h1>
+            <div class="text-muted">Execution enregistree le {{ audit.created_at|date:"Y-m-d H:i:s" }}.</div>
+        </div>
+        <a class="btn btn-outline-secondary" href="{% url 'query_audit' %}">
+            <i class="fa-solid fa-arrow-left me-1"></i> Retour a la liste
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="small text-muted mb-1">Utilisateur</div>
+                    <div class="fw-semibold mb-3">{{ audit.user.username|default:"-" }}</div>
+
+                    <div class="small text-muted mb-1">Statut</div>
+                    <div class="mb-3">
+                        {% if audit.success %}
+                            <span class="badge bg-success">Succes</span>
+                        {% else %}
+                            <span class="badge bg-danger">Erreur</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="small text-muted mb-1">Lignes retournees</div>
+                    <div class="fw-semibold mb-3">{{ audit.row_count }}</div>
+
+                    <div class="small text-muted mb-1">Date</div>
+                    <div class="fw-semibold">{{ audit.created_at|date:"Y-m-d H:i:s" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Requete SQL</h5>
+                </div>
+                <div class="card-body">
+                    <pre class="mb-0"><code>{{ audit.query_text }}</code></pre>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Erreur</h5>
+                </div>
+                <div class="card-body">
+                    {% if audit.error_message %}
+                        <pre class="mb-0 text-danger"><code>{{ audit.error_message }}</code></pre>
+                    {% else %}
+                        <div class="text-muted">Aucune erreur.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,28 @@
+<div class="card shadow-sm border-0 h-100">
+    <div class="card-header bg-white">
+        <div class="small text-muted text-uppercase fw-semibold">Parametres</div>
+        <h2 class="h5 mb-0">Compte</h2>
+    </div>
+    <div class="list-group list-group-flush">
+        <a class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'account_settings' %}active{% endif %}"
+           href="{% url 'account_settings' %}">
+            <i class="fa-solid fa-sliders me-2"></i>Vue d'ensemble
+        </a>
+        <a class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'account_email' %}active{% endif %}"
+           href="{% url 'account_email' %}">
+            <i class="fa-solid fa-envelope me-2"></i>Email
+        </a>
+        <a class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'account_change_password' %}active{% endif %}"
+           href="{% url 'account_change_password' %}">
+            <i class="fa-solid fa-key me-2"></i>Mot de passe
+        </a>
+        <a class="list-group-item list-group-item-action"
+           href="{% url 'oracle_accounts:list' %}">
+            <i class="fa-solid fa-database me-2"></i>Identifiants Oracle
+        </a>
+        <a class="list-group-item list-group-item-action"
+           href="{% url 'healthz' %}">
+            <i class="fa-solid fa-heart-pulse me-2"></i>Sante
+        </a>
+    </div>
+</div>

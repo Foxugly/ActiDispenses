@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord technique{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="text-uppercase small fw-semibold text-primary mb-2">Outils staff</div>
+                    <h1 class="display-6 fw-semibold mb-3">Tableau de bord technique</h1>
+                    <p class="lead text-muted mb-0">
+                        Regroupe les controles de sante, les audits SQL et les commandes de maintenance utiles.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="small text-uppercase fw-semibold text-primary mb-2">Audits SQL</div>
+                    <div class="display-6 fw-semibold">{{ dashboard.total_audits }}</div>
+                    <div class="small text-muted mb-3">executions historisees</div>
+                    <div class="d-grid gap-2">
+                        <div class="d-flex justify-content-between"><span>Succes</span><span class="fw-semibold text-success">{{ dashboard.successful_audits }}</span></div>
+                        <div class="d-flex justify-content-between"><span>Erreurs</span><span class="fw-semibold text-danger">{{ dashboard.failed_audits }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="small text-uppercase fw-semibold text-primary mb-2">Oracle</div>
+                    {% if dashboard.last_oracle_success %}
+                        <div class="fw-semibold">{{ dashboard.last_oracle_success.username }}</div>
+                        <div class="small text-muted">{{ dashboard.last_oracle_success.timestamp }}</div>
+                        <p class="small text-muted mt-3 mb-0">{{ dashboard.last_oracle_success.message }}</p>
+                    {% else %}
+                        <div class="fw-semibold">Aucun succes memorise</div>
+                        <p class="small text-muted mt-3 mb-0">Lance `/healthz/?oracle=1` pour memoriser un test reussi.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="small text-uppercase fw-semibold text-primary mb-2">Commandes utiles</div>
+                    <div class="small text-muted mb-2">Diagnostic</div>
+                    <code class="d-block mb-3">python manage.py diagnose_app</code>
+                    <div class="small text-muted mb-2">Purge audit</div>
+                    <code class="d-block">python manage.py purge_query_audits --days 90</code>
+                    <div class="small text-muted mt-3 mb-2">Bootstrap acces</div>
+                    <code class="d-block">python manage.py bootstrap_app_access</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Metriques applicatives</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Console SQL</div>
+                                <div class="fw-semibold">{{ dashboard.metrics.query_requests }} execution(s)</div>
+                                <div class="small text-muted">
+                                    {{ dashboard.metrics.query_successes }} succes / {{ dashboard.metrics.query_failures }} erreur(s)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Healthz</div>
+                                <div class="fw-semibold">{{ dashboard.metrics.healthz_requests }} appel(s)</div>
+                                <div class="small text-muted">
+                                    Derniere latence DB: {{ dashboard.metrics.last_database_duration_ms }} ms
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Checks Oracle</div>
+                                <div class="fw-semibold">{{ dashboard.metrics.oracle_checks }} verification(s)</div>
+                                <div class="small text-muted">
+                                    {{ dashboard.metrics.oracle_check_failures }} echec(s)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="small text-muted mb-1">Tests de credentials</div>
+                                <div class="fw-semibold">{{ dashboard.metrics.credential_tests }} test(s)</div>
+                                <div class="small text-muted">
+                                    {{ dashboard.metrics.credential_test_failures }} echec(s)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-0">Raccourcis</h2>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a class="list-group-item list-group-item-action" href="{% url 'healthz' %}">
+                        <i class="fa-solid fa-heart-pulse me-2"></i>Sante applicative
+                    </a>
+                    <a class="list-group-item list-group-item-action" href="{% url 'query_audit' %}">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i>Audit SQL
+                    </a>
+                    <a class="list-group-item list-group-item-action" href="{% url 'query' %}">
+                        <i class="fa-solid fa-database me-2"></i>Requete SQL
+                    </a>
+                    <a class="list-group-item list-group-item-action" href="{% url 'oracle_accounts:list' %}">
+                        <i class="fa-solid fa-server me-2"></i>Identifiants Oracle
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h2 class="h5 mb-0">Derniers audits</h2>
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'query_audit_export' %}">Exporter CSV</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Utilisateur</th>
+                                <th>Etat</th>
+                                <th>Lignes</th>
+                                <th class="text-end">Detail</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for audit in dashboard.latest_audits %}
+                                <tr>
+                                    <td>{{ audit.created_at|date:"Y-m-d H:i:s" }}</td>
+                                    <td>{{ audit.user.username|default:"-" }}</td>
+                                    <td>
+                                        {% if audit.success %}
+                                            <span class="badge bg-success">Succes</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Erreur</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ audit.row_count }}</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'query_audit_detail' audit.id %}">
+                                            Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">Aucun audit disponible.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static i18n crispy_forms_tags %}
+
+{% block title %}Parametres - Email{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-3">
+        {% include "account/includes/settings_nav.html" %}
+    </div>
+
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                    <div>
+                        <div class="text-uppercase small fw-semibold text-primary mb-2">Parametres</div>
+                        <h1 class="h3 mb-1">Adresses email</h1>
+                        <p class="text-muted mb-0">Gere l'adresse principale de ton compte et les adresses secondaires.</p>
+                    </div>
+                </div>
+
+                {% if emailaddresses %}
+                    <form method="post" action="{% url 'account_email' %}" class="vstack gap-3 mb-4">
+                        {% csrf_token %}
+                        <div class="vstack gap-3">
+                            {% for radio in emailaddress_radios %}
+                                {% with emailaddress=radio.emailaddress %}
+                                    <label class="border rounded-4 p-3 d-flex justify-content-between align-items-start gap-3">
+                                        <span class="d-flex gap-3 align-items-start">
+                                            <input class="form-check-input mt-1" type="radio" name="email" value="{{ emailaddress.email }}" {% if radio.checked %}checked{% endif %}>
+                                            <span>
+                                                <span class="fw-semibold d-block">{{ emailaddress.email }}</span>
+                                                <span class="d-flex flex-wrap gap-2 mt-2">
+                                                    {% if emailaddress.verified %}
+                                                        <span class="badge bg-success">Verifiee</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning text-dark">Non verifiee</span>
+                                                    {% endif %}
+                                                    {% if emailaddress.primary %}
+                                                        <span class="badge bg-primary">Principale</span>
+                                                    {% endif %}
+                                                </span>
+                                            </span>
+                                        </span>
+                                    </label>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-primary" type="submit" name="action_primary">
+                                <i class="fa-solid fa-star me-2"></i>Definir comme principale
+                            </button>
+                            <button class="btn btn-outline-secondary" type="submit" name="action_send">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Renvoyer la verification
+                            </button>
+                            <button class="btn btn-outline-danger" type="submit" name="action_remove" id="remove-email-btn">
+                                <i class="fa-solid fa-trash me-2"></i>Supprimer
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning mb-4">
+                        Aucune adresse email n'est associee a ce compte.
+                    </div>
+                {% endif %}
+
+                {% if can_add_email %}
+                    <div class="border-top pt-4">
+                        <h2 class="h5 mb-3">Ajouter une adresse</h2>
+                        <form method="post" action="{% url 'account_email' %}" class="vstack gap-3">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            <div>
+                                <button class="btn btn-success" type="submit" name="action_add">
+                                    <i class="fa-solid fa-plus me-2"></i>Ajouter l'email
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'account/js/account.js' %}"></script>
+<script src="{% static 'account/js/onload.js' %}"></script>
+<script>
+    document.getElementById("remove-email-btn")?.addEventListener("click", function (event) {
+        if (!confirm("Supprimer l'adresse email selectionnee ?")) {
+            event.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

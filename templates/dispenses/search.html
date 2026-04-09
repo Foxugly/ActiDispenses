@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Recherche dispenses{% endblock %}
+
+{% block content %}
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 overflow-hidden">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="text-uppercase small fw-semibold text-primary mb-2">Dispenses</div>
+                    <h1 class="display-6 fw-semibold mb-3">Recherche personne ou dispense</h1>
+                    <p class="lead text-muted mb-0">
+                        Retrouve rapidement une personne a partir d'un identifiant metier
+                        et affiche ses dispenses ainsi que l'historique d'envoi ONEM.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h2 class="h5 mb-1">Critere de recherche</h2>
+                    <div class="small text-muted">Renseigne exactement un seul champ.</div>
+                </div>
+                <div class="card-body p-4">
+                    {% if not_found %}
+                        <div class="alert alert-warning">Aucune personne trouvee pour ce critere.</div>
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <form method="get" class="row g-4" data-strip-empty-fields="1">
+                        <div class="col-12">
+                            <div class="rounded-4 border bg-body-tertiary p-4">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-user text-primary"></i>
+                                    <h3 class="h5 mb-0">Recherche personne</h3>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">{{ form.no_ibis|as_crispy_field }}</div>
+                                    <div class="col-md-4">{{ form.id_demandeur|as_crispy_field }}</div>
+                                    <div class="col-md-4">{{ form.niss|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="rounded-4 border bg-body-tertiary p-4">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-file-invoice text-primary"></i>
+                                    <h3 class="h5 mb-0">Recherche dispense</h3>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">{{ form.id_dispense|as_crispy_field }}</div>
+                                    <div class="col-md-6">{{ form.no_dispense|as_crispy_field }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-flex flex-wrap align-items-center gap-2 pt-2">
+                            <div class="me-auto small text-muted">Les champs vides sont ignores avant soumission.</div>
+                            <a class="btn btn-outline-secondary" href="{% url 'dispenses_search' %}">Reinitialiser</a>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa-solid fa-magnifying-glass me-2"></i>Rechercher
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-4">
+                    <div class="small text-uppercase fw-semibold text-primary mb-2">Repere</div>
+                    <h2 class="h5 mb-3">Utilisation conseillee</h2>
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li>Le NISS est ideal pour partir d'une personne.</li>
+                        <li>`id_dispense` et `no_dispense` servent a remonter directement a une dispense.</li>
+                        <li>Les resultats affichent ensuite les lignes `ib_dispenses` et `ib_unempl_decision_dispenses`.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'app/js/search_form.js' %}"></script>
+{% endblock %}
