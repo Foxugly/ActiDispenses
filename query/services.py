@@ -168,10 +168,7 @@ def build_query_search_context(form: QueryForm) -> QuerySearchContext:
 
 
 def build_query_execution_summary(query: str) -> QueryExecutionSummary:
-    sources = [
-        f"{schema}.{table}" if schema else table
-        for schema, table in extract_query_sources(query)
-    ]
+    sources = [f"{schema}.{table}" if schema else table for schema, table in extract_query_sources(query)]
     unique_sources = list(dict.fromkeys(sources))
     return {
         "source_count": len(unique_sources),

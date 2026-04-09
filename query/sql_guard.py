@@ -21,8 +21,7 @@ def _configured_allowed_schemas() -> set[str]:
 
 def _extract_cte_names(query: str) -> set[str]:
     return {
-        match.group(1).upper()
-        for match in [*WITH_CTE_PATTERN.finditer(query), *ADDITIONAL_CTE_PATTERN.finditer(query)]
+        match.group(1).upper() for match in [*WITH_CTE_PATTERN.finditer(query), *ADDITIONAL_CTE_PATTERN.finditer(query)]
     }
 
 
@@ -59,7 +58,5 @@ def validate_allowed_query_sources(query: str) -> None:
     if disallowed_sources:
         allowed_tables_display = ", ".join(sorted(allowed_tables)) or "aucune restriction"
         raise ValidationError(
-            "Sources SQL non autorisees: "
-            f"{', '.join(disallowed_sources)}. "
-            f"Tables autorisees: {allowed_tables_display}."
+            f"Sources SQL non autorisees: {', '.join(disallowed_sources)}. Tables autorisees: {allowed_tables_display}."
         )
