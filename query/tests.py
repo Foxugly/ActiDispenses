@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from query.forms import QueryForm
 from query.models import QueryAudit
-from tests.factories import grant_permissions, make_staff_user, make_user
+from tests.factories import grant_permissions, make_query_audit, make_staff_user, make_user
 
 
 class QueryFormTests(TestCase):
@@ -74,6 +74,24 @@ class RunQueryViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_search_page_shows_recent_user_queries(self):
+        user = grant_permissions(make_user(username="sql-user"), "run_sql_console")
+        other_user = grant_permissions(make_user(username="other-sql-user"), "run_sql_console")
+        make_query_audit(user=user, query_text="SELECT 1", row_count=1, success=True)
+        make_query_audit(user=user, query_text="SELECT 2", row_count=2, success=False)
+        make_query_audit(user=other_user, query_text="SELECT 999", row_count=999, success=True)
+        self.client.force_login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dernieres requetes")
+        self.assertContains(response, "SELECT 1")
+        self.assertContains(response, "SELECT 2")
+        self.assertNotContains(response, "SELECT 999")
+        self.assertContains(response, "Relancer")
+        self.assertContains(response, "Autres")
+
     @patch("query.views.fetch_query", return_value=[{"col1": 1}])
     def test_user_with_run_sql_permission_can_run_query(self, fetch_query_mock):
         user = grant_permissions(make_user(username="sql-user"), "run_sql_console")
@@ -98,6 +116,7 @@ class RunQueryViewTests(TestCase):
         self.assertEqual(response.context["max_rows"], settings.QUERY_PREVIEW_MAX_ROWS)
         self.assertContains(response, f"apercu limite a {settings.QUERY_PREVIEW_MAX_ROWS} ligne")
         self.assertContains(response, "Colonnes")
+        self.assertContains(response, 'placeholder="Filtrer..."')
         self.assertContains(response, "Nouvelle requete")
         fetch_query_mock.assert_called_once()
         audit = QueryAudit.objects.get()
@@ -115,6 +134,60 @@ class RunQueryViewTests(TestCase):
         audit = QueryAudit.objects.get()
         self.assertFalse(audit.success)
         self.assertEqual(audit.error_message, "boom")
+
+    @patch("query.views.fetch_query", return_value=[{"col1": 1}])
+    def test_can_rerun_saved_query_from_history(self, fetch_query_mock):
+        user = grant_permissions(make_user(username="sql-rerun"), "run_sql_console")
+        make_query_audit(user=user, query_text="SELECT 7 AS col1 FROM dual", row_count=1, success=True)
+        self.client.force_login(user)
+
+        response = self.client.post(self.url, {"query": "SELECT 7 AS col1 FROM dual"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "query/result.html")
+        fetch_query_mock.assert_called_once()
+
+
+class QueryHistoryViewTests(TestCase):
+    def setUp(self):
+        self.url = reverse("query_history")
+
+    def test_user_with_run_permission_can_access_history_page(self):
+        user = grant_permissions(make_user(username="history-user"), "run_sql_console")
+        make_query_audit(user=user, query_text="SELECT 1", row_count=1, success=True)
+        self.client.force_login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "query/history_list.html")
+        self.assertContains(response, "Toutes mes requetes")
+        self.assertContains(response, "SELECT 1")
+        self.assertContains(response, "Relancer")
+
+    def test_history_page_is_limited_to_current_user(self):
+        user = grant_permissions(make_user(username="history-owner"), "run_sql_console")
+        other_user = grant_permissions(make_user(username="history-other"), "run_sql_console")
+        make_query_audit(user=user, query_text="SELECT owner_value", row_count=1, success=True)
+        make_query_audit(user=other_user, query_text="SELECT other_value", row_count=1, success=True)
+        self.client.force_login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "SELECT owner_value")
+        self.assertNotContains(response, "SELECT other_value")
+
+    def test_history_page_is_paginated(self):
+        user = grant_permissions(make_user(username="history-paginated"), "run_sql_console")
+        for index in range(30):
+            make_query_audit(user=user, query_text=f"SELECT {index}", row_count=index, success=True)
+        self.client.force_login(user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["page_obj"].paginator.num_pages >= 2)
+        self.assertEqual(len(response.context["queries"]), 25)
 
 
 class QueryAuditViewTests(TestCase):

@@ -89,6 +89,7 @@ function initExportableDataTable(selector, filename, options = {}) {
         lengthMenu = [10, 25, 50, 100],
         columnDefs = [],
         orderCellsTop = false,
+        extraButtons = [],
     } = options;
 
     const visibilityDefs = visibleArray.map((visible, index) => ({targets: index, visible}));
@@ -102,9 +103,10 @@ function initExportableDataTable(selector, filename, options = {}) {
                 buttons: [
                     {extend: "copyHtml5", text: "Copier"},
                     {extend: "csvHtml5", text: "CSV", filename},
-                    {extend: "excelHtml5", text: "Excel", filename},
+                    {extend: "excelHtml5", text: "XLSX", filename},
                     {extend: "pdfHtml5", text: "PDF", filename},
                     {extend: "print", text: "Imprimer"},
+                    ...extraButtons,
                 ],
             },
             topEnd: "search",

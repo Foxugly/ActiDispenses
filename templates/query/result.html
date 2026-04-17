@@ -54,6 +54,11 @@
                   <th>{{ c }}</th>
                 {% endfor %}
               </tr>
+              <tr>
+                {% for c in cols %}
+                  <th><input type="text" class="form-control form-control-sm column-filter" placeholder="Filtrer..."></th>
+                {% endfor %}
+              </tr>
             </thead>
             <tbody>
               {% for row in results %}

@@ -52,12 +52,18 @@ class QuerySearchContext(TypedDict):
     form: QueryForm
     max_rows: int
     allowed_tables: list[str]
+    recent_queries: list[QueryAudit]
 
 
 class QueryAuditListContext(TypedDict):
     page_obj: Page[QueryAudit]
     audits: list[QueryAudit]
     filters: QueryAuditFilters
+
+
+class QueryHistoryListContext(TypedDict):
+    page_obj: Page[QueryAudit]
+    queries: list[QueryAudit]
 
 
 class QueryExecutionSummary(TypedDict):
@@ -164,6 +170,7 @@ def build_query_search_context(form: QueryForm) -> QuerySearchContext:
         "form": form,
         "max_rows": settings.QUERY_PREVIEW_MAX_ROWS,
         "allowed_tables": list(settings.QUERY_ALLOWED_TABLES),
+        "recent_queries": [],
     }
 
 
@@ -181,6 +188,24 @@ def build_query_audit_list_context(page: Page[QueryAudit], filters: QueryAuditFi
         "page_obj": page,
         "audits": list(cast(list[QueryAudit], page.object_list)),
         "filters": filters,
+    }
+
+
+def recent_queries_for_user(user, *, limit: int = 10) -> list[QueryAudit]:
+    queryset = QueryAudit.objects.filter(user=user).order_by("-created_at", "-id")[:limit]
+    return list(cast(list[QueryAudit], queryset))
+
+
+def build_query_search_context_with_history(form: QueryForm, *, user) -> QuerySearchContext:
+    context = build_query_search_context(form)
+    context["recent_queries"] = recent_queries_for_user(user)
+    return context
+
+
+def build_query_history_list_context(page: Page[QueryAudit]) -> QueryHistoryListContext:
+    return {
+        "page_obj": page,
+        "queries": list(cast(list[QueryAudit], page.object_list)),
     }
 
 

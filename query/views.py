@@ -18,8 +18,10 @@ from .services import (
     build_query_audit_csv,
     build_query_audit_list_context,
     build_query_execution_summary,
+    build_query_history_list_context,
     build_query_result_context,
     build_query_search_context,
+    build_query_search_context_with_history,
     create_query_audit,
     filter_query_audits,
 )
@@ -73,7 +75,19 @@ def run_query(request: WSGIRequest):
         )
         return render(request, "query/result.html", build_query_result_context(form, results))
 
-    return render(request, "query/search.html", build_query_search_context(form))
+    return render(request, "query/search.html", build_query_search_context_with_history(form, user=request.user))
+
+
+@login_required
+@require_http_methods(["GET"])
+def query_history_list(request: WSGIRequest):
+    ensure_can_run_sql_console(request)
+
+    queries = QueryAudit.objects.filter(user=request.user).order_by("-created_at", "-id")
+    paginator = Paginator(queries, 25)
+    page = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "query/history_list.html", build_query_history_list_context(page))
 
 
 @login_required
