@@ -672,7 +672,7 @@ class ExportFluxCountsCommandTests(TestCase):
         class FakeOracleError(oracledb.Error):
             def __init__(self):
                 super().__init__('ORA-00904: "DT_CREATION": invalid identifier')
-                self.args = [FakeOracleErrorDetails()]
+                self.args = (FakeOracleErrorDetails(),)
 
             def __str__(self):
                 return 'ORA-00904: "DT_CREATION": invalid identifier'
