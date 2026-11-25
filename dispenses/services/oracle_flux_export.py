@@ -89,7 +89,7 @@ def build_sheet_name(table_name: str, used_names: set[str]) -> str:
     suffix = 1
     while candidate in used_names:
         suffix_text = f"_{suffix}"
-        candidate = f"{base_name[:SHEET_NAME_LIMIT - len(suffix_text)]}{suffix_text}"
+        candidate = f"{base_name[: SHEET_NAME_LIMIT - len(suffix_text)]}{suffix_text}"
         suffix += 1
     return candidate
 

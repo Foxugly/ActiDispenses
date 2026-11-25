@@ -131,7 +131,8 @@ class Command(BaseCommand):
         credential_id = options.get("credential_id")
         if credential_id:
             try:
-                return OracleCredential.objects.get(pk=credential_id, enabled=True)
+                credential: OracleCredential = OracleCredential.objects.get(pk=credential_id, enabled=True)
+                return credential
             except OracleCredential.DoesNotExist as exc:
                 raise CommandError(f"OracleCredential introuvable ou desactive: {credential_id}") from exc
 
