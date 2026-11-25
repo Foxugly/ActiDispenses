@@ -1,14 +1,18 @@
 from datetime import date
 from io import StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import patch
 
+import oracledb
 from django.conf import settings
 from django.core.cache import cache
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
+from openpyxl import load_workbook
 
 from dispenses.forms import DispenseSearchForm
 from dispenses.services.oracle import (
@@ -532,3 +536,162 @@ class DiagnoseCommandTests(TestCase):
             call_command("diagnose_app", stdout=output)
 
         self.assertIn("ActiDispenses diagnostic", output.getvalue())
+
+
+class FluxExportWorkbookTests(TestCase):
+    def test_normalize_output_path_forces_xlsx_extension(self):
+        from dispenses.services.oracle_flux_export import normalize_output_path
+
+        self.assertEqual(normalize_output_path("report.xls"), Path("report.xlsx"))
+        self.assertEqual(normalize_output_path("report.xlsx"), Path("report.xlsx"))
+
+    def test_build_flux_workbook_creates_summary_and_table_sheets(self):
+        from dispenses.services.oracle_flux_export import MonthlyCount, TableMonthlyCounts, build_flux_workbook
+
+        with TemporaryDirectory() as tmp_dir:
+            output_path = Path(tmp_dir) / "flux.xlsx"
+            build_flux_workbook(
+                output_path,
+                [
+                    TableMonthlyCounts(
+                        table_name="IB_FLUX_A020",
+                        rows=[
+                            MonthlyCount("2026-01", 5),
+                            MonthlyCount("2026-02", 7),
+                        ],
+                    ),
+                    TableMonthlyCounts(
+                        table_name="IB_FLUX_A021",
+                        rows=[],
+                    ),
+                ],
+            )
+
+            workbook = load_workbook(output_path)
+            summary_sheet = workbook["global"]
+            table_sheet = workbook["IB_FLUX_A020"]
+            empty_sheet = workbook["IB_FLUX_A021"]
+
+            self.assertEqual(summary_sheet["A2"].value, "IB_FLUX_A020")
+            self.assertEqual(summary_sheet["B2"].value, "='IB_FLUX_A020'!B4")
+            self.assertEqual(summary_sheet["B2"].hyperlink.target, "#'IB_FLUX_A020'!B4")
+            self.assertEqual(table_sheet["A2"].value, "2026-01")
+            self.assertEqual(table_sheet["B3"].value, 7)
+            self.assertEqual(table_sheet["A4"].value, "TOTAL")
+            self.assertEqual(table_sheet["B4"].value, "=SUM(B2:B3)")
+            self.assertEqual(empty_sheet["A2"].value, "TOTAL")
+            self.assertEqual(empty_sheet["B2"].value, "=0")
+
+    def test_build_sheet_name_handles_excel_limit_and_duplicates(self):
+        from dispenses.services.oracle_flux_export import SHEET_NAME_LIMIT, build_sheet_name
+
+        table_name = "IB_FLUX_" + ("A" * 40)
+        first = build_sheet_name(table_name, {"global"})
+        second = build_sheet_name(table_name, {"global", first})
+
+        self.assertLessEqual(len(first), SHEET_NAME_LIMIT)
+        self.assertLessEqual(len(second), SHEET_NAME_LIMIT)
+        self.assertNotEqual(first, second)
+
+
+class ExportFluxCountsCommandTests(TestCase):
+    @patch("dispenses.management.commands.export_flux_counts.build_flux_workbook")
+    @patch("dispenses.management.commands.export_flux_counts.fetch_monthly_counts", return_value=[])
+    @patch("dispenses.management.commands.export_flux_counts.list_flux_tables", return_value=["IB_FLUX_A020"])
+    @patch("dispenses.management.commands.export_flux_counts.connect_with_credential")
+    @patch("dispenses.management.commands.export_flux_counts.init_oracle_client")
+    def test_command_can_use_credential_id(
+        self,
+        _init_mock,
+        connect_mock,
+        _list_mock,
+        _monthly_mock,
+        build_mock,
+    ):
+        user = make_user(username="flux-export-user")
+        credential = make_oracle_credential(user=user, current=True, username="flux_user")
+        output = StringIO()
+
+        class ConnectionContext:
+            call_timeout = None
+
+            def __enter__(self_inner):
+                return self_inner
+
+            def __exit__(self_inner, exc_type, exc, tb):
+                return False
+
+        connect_mock.return_value = ConnectionContext()
+
+        call_command(
+            "export_flux_counts",
+            credential_id=credential.id,
+            output="test_flux.xlsx",
+            stdout=output,
+        )
+
+        connect_mock.assert_called_once()
+        self.assertEqual(connect_mock.call_args.args[0].id, credential.id)
+        build_mock.assert_called_once()
+        self.assertIn("Connexion Oracle: flux_user@", output.getvalue())
+
+    def test_command_rejects_unknown_credential_id(self):
+        with self.assertRaisesMessage(Exception, "OracleCredential introuvable ou desactive: 999999"):
+            call_command("export_flux_counts", credential_id=999999, output="test_flux.xlsx")
+
+    @patch("dispenses.management.commands.export_flux_counts.build_flux_workbook")
+    @patch(
+        "dispenses.management.commands.export_flux_counts.list_flux_tables",
+        return_value=["IB_FLUX_A020", "IB_FLUX_BAD"],
+    )
+    @patch("dispenses.management.commands.export_flux_counts.connect_with_credential")
+    @patch("dispenses.management.commands.export_flux_counts.init_oracle_client")
+    def test_command_skips_table_without_dt_creation(
+        self,
+        _init_mock,
+        connect_mock,
+        _list_mock,
+        build_mock,
+    ):
+        user = make_user(username="flux-export-user-2")
+        credential = make_oracle_credential(user=user, current=True, username="flux_user")
+        output = StringIO()
+
+        class ConnectionContext:
+            call_timeout = None
+
+            def __enter__(self_inner):
+                return self_inner
+
+            def __exit__(self_inner, exc_type, exc, tb):
+                return False
+
+        class FakeOracleErrorDetails:
+            code = 904
+
+        class FakeOracleError(oracledb.Error):
+            def __init__(self):
+                super().__init__('ORA-00904: "DT_CREATION": invalid identifier')
+                self.args = [FakeOracleErrorDetails()]
+
+            def __str__(self):
+                return 'ORA-00904: "DT_CREATION": invalid identifier'
+
+        connect_mock.return_value = ConnectionContext()
+
+        with patch(
+            "dispenses.management.commands.export_flux_counts.fetch_monthly_counts",
+            side_effect=[[], FakeOracleError()],
+        ):
+            call_command(
+                "export_flux_counts",
+                credential_id=credential.id,
+                output="test_flux.xlsx",
+                stdout=output,
+            )
+
+        build_mock.assert_called_once()
+        workbook_tables = build_mock.call_args.args[1]
+        self.assertEqual(len(workbook_tables), 1)
+        self.assertEqual(workbook_tables[0].table_name, "IB_FLUX_A020")
+        self.assertIn("IB_FLUX_BAD ignoree: colonne DT_CREATION absente.", output.getvalue())
